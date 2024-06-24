@@ -1,6 +1,20 @@
 import {database} from "../../common/database.js";
 import {Referral} from "./referralStructure.js";
 import {generate} from "referral-codes";
+import ApplicationConfig from "../../../ApplicationConfig.js";
+
+export const queryReferral = (query = {}, callback) => {
+    let _query = {
+        ...query,
+        table: 'Referral',
+    };
+
+    database().find(_query, callback);
+};
+
+export const queryReferred = (referralCode, callback) => {
+    queryReferral({referredCode: referralCode}, callback);
+};
 
 const generateReferralCode = () => {
     let codes = generate({length: 8});
@@ -8,12 +22,12 @@ const generateReferralCode = () => {
     return referralCode;
 };
 
-const generateReferralData = (address, referredAddress, referredCode) => {
+const generateReferralData = (address, impAddress, cmpAddress, referredAddress, referredCode) => {
     return new Promise((resolve, reject) => {
         let referralCode = generateReferralCode();
 
         let referral = new Referral({
-            address, referralCode, referredAddress, referredCode
+            address, referralCode, referredAddress, referredCode, impAddress, cmpAddress
         });
 
         database().appendItem(referral, error => {
@@ -22,19 +36,23 @@ const generateReferralData = (address, referredAddress, referredCode) => {
                 `error =>`, error,
             );
 
-            resolve(referral);
+            resolve(referral || {});
         });
     });
 };
 
-const checkReferredCodeAndGenerateReferralCode = (address, referredCode) => {
+const checkReferredCodeAndGenerateReferralCode = (address, referredCode, impAddress, cmpAddress) => {
     return new Promise((resolve, reject) => {
+        if(!impAddress || !cmpAddress){
+            resolve({});
+        }
+
         if(!referredCode){
-            generateReferralData(address).then(referral => {
+            generateReferralData(address, impAddress, cmpAddress).then(referral => {
                 resolve(referral);
             });
         } else {
-            database().find({referralCode: referredCode}, (err, items) => {
+            queryReferral({referralCode: referredCode}, (err, items) => {
                 console.debug(
                     `check referredCode:`,
                     `referralCode =>`, referredCode,
@@ -42,13 +60,28 @@ const checkReferredCodeAndGenerateReferralCode = (address, referredCode) => {
                 );
 
                 if(items && items.length){
-                    let referral = items[0];
-                    let referredAddress = referral.address;
-                    generateReferralData(address, referredAddress, referredCode).then(referral => {
-                        resolve(referral);
+                    queryReferral({referredCode: referredCode}, (err, referredItems) => {
+                        let _referredItems = referredItems || [];
+                        console.debug(
+                            `check referred size:`,
+                            `referred size =>`, _referredItems?.length,
+                            `items =>`, _referredItems,
+                        );
+
+                        if(_referredItems.length < ApplicationConfig.maxRefer){
+                            let referral = items[0];
+                            let referredAddress = referral.address;
+                            generateReferralData(address, impAddress, cmpAddress, referredAddress, referredCode).then(referral => {
+                                resolve(referral);
+                            });
+                        } else {
+                            generateReferralData(address, impAddress, cmpAddress).then(referral => {
+                                resolve(referral);
+                            });
+                        }
                     });
                 } else {
-                    generateReferralData(address).then(referral => {
+                    generateReferralData(address, impAddress, cmpAddress).then(referral => {
                         resolve(referral);
                     });
                 }
@@ -57,9 +90,9 @@ const checkReferredCodeAndGenerateReferralCode = (address, referredCode) => {
     });
 };
 
-export const checkAndGenerateReferralCode = (address, referredCode) => {
+export const checkAndGenerateReferralCode = (address, referredCode, impAddress, cmpAddress) => {
     return new Promise((resolve, reject) => {
-        database().find({address}, (err, items) => {
+        queryReferral({address}, (err, items) => {
             console.debug(
                 `checkAndGenerateReferralCode:`,
                 `address =>`, address,
@@ -70,7 +103,7 @@ export const checkAndGenerateReferralCode = (address, referredCode) => {
                 let referral = items[0];
                 resolve(referral);
             } else {
-                checkReferredCodeAndGenerateReferralCode(address, referredCode).then(referral => {
+                checkReferredCodeAndGenerateReferralCode(address, referredCode, impAddress, cmpAddress).then(referral => {
                     resolve(referral);
                 });
             }

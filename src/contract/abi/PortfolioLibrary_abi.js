@@ -225,5 +225,24 @@ const PortfolioLibrary_abi = [
         "stateMutability": "view",
         "type": "function"
     },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_cmp",
+                "type": "address"
+            }
+        ],
+        "name": "getEquityEst",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
 ];
 export default PortfolioLibrary_abi;

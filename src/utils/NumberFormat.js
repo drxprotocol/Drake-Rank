@@ -117,3 +117,17 @@ export function toInteger(_number) {
     let number = new BigNumber(_number || 0);
     return number.toFixed(0);
 }
+
+export function toOffChainValue(onChainValue, decimals) {
+    let _onChainValue = onChainValue?.hex ? new BigNumber(onChainValue.hex, 16) : new BigNumber(onChainValue);
+    let scale = new BigNumber(10).pow(decimals?.decimals || decimals);
+    let offChainValue = _onChainValue.div(scale);
+    return offChainValue;
+}
+
+export function toOnChainValue(offChainValue, decimals) {
+    let _offChainValue = new BigNumber(offChainValue);
+    let scale = new BigNumber(10).pow(decimals?.decimals || decimals);
+    let onChainValue = _offChainValue.times(scale);
+    return onChainValue;
+}

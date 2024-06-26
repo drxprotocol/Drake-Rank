@@ -41,5 +41,5 @@ export default {
     maxAmountOnChain: '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff',
 
     // backend config
-
+    taskIntervalTradingPnL: '0 0 0 * * ?',
 };

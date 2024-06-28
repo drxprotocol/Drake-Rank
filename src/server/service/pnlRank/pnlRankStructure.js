@@ -1,7 +1,9 @@
 
 export const LastUpdatedTimeCacheKey = "LastUpdatedTime";
 
-export const RankCacheKey = "LastRank";
+export const LastRankingArrCacheKey = "LastRankingArr";
+export const LastTopRankingArrCacheKey = "LastTopRankingArr";
+export const LastRankingMapCacheKey = "LastRankingMap";
 
 export const Pnl = class {
     table = 'Pnl';

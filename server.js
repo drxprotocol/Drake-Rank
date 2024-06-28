@@ -1,27 +1,13 @@
+import {__dirname} from "./initDotenv.js";
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import {initCronTask} from "./src/server/task/cronTask.js";
 import ApplicationConfig from "./src/ApplicationConfig.js";
-import { config } from 'dotenv';
 import {checkAndGenerateReferralCodeAction} from "./src/server/service/referral/referralAction.js";
+import {getLastRanking, getLastTopRanking, getMyRanking} from "./src/server/service/pnlRank/pnlRankAction.js";
 import {initDatabase} from "./src/server/common/database.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const initConfig = () => {
-    let configFile = `.env.${process.env.NODE_ENV}`;
-    console.debug(`__dirname =>`, __dirname, `configFile =>`, configFile);
-    config({
-        path: path.resolve(__dirname, configFile)
-    });
-
-    let env = process.env;
-    console.debug(`ENV =>`, env);
-};
-
 
 const initWebServer = async () => {
     const app = express();
@@ -37,6 +23,18 @@ const initWebServer = async () => {
 
     app.get('/referral',function(req,res,next){
         checkAndGenerateReferralCodeAction(req, res);
+    });
+
+    app.get('/pnlRanking/last',function(req,res,next){
+        getLastRanking(req, res);
+    });
+
+    app.get('/pnlRanking/top',function(req,res,next){
+        getLastTopRanking(req, res);
+    });
+
+    app.get('/pnlRanking/my',function(req,res,next){
+        getMyRanking(req, res);
     });
 
     app.use('*', async (req, res, next) => {
@@ -75,9 +73,9 @@ const initBackendService = () => {
     initCronTask();
 };
 
-
 const init = () => {
-    initConfig();
+    console.debug(`init server: process.env.CURRENT_CHAIN =>`, process.env.CURRENT_CHAIN);
+
     initWebServer();
     initBackendService();
 };

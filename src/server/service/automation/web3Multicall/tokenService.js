@@ -97,13 +97,25 @@ export const allSettleCcyTokenArr = () => {
     });
 };
 
-export const allAssetsRankedByLiq = [
+const allAssetsRankedByLiqForArbitrum = [
     tokenUSDT,
     tokenWBTC,
     tokenWETH,
 ];
 
-export const allAssetsAddressRankedByLiq = allAssetsRankedByLiq.map(token => {
+const allAssetsRankedByLiqForBase = [
+    tokenUSDC,
+    tokenWBTC,
+    tokenWETH,
+];
+
+export const allAssetsRankedByLiq = allAssetsRankedByLiqForArbitrum;
+
+const allAssetsRankedByLiqMap = {
+    [ApplicationConfig.chainConfigForBaseSepoliaTestNet.chainId]: allAssetsRankedByLiqForBase,
+};
+
+export const allAssetsAddressRankedByLiq = allAssetsRankedByLiqMap[chainConfig.chainId].map(token => {
    return token.address;
 });
 
@@ -122,8 +134,8 @@ export const volatileTokenArr = [
         token: tokenWETH,
         tradingPairSymbol: 'ETHUSDT',
     },
-    {
-        token: tokenARB,
-        tradingPairSymbol: 'ARBUSDT',
-    },
+    // {
+    //     token: tokenARB,
+    //     tradingPairSymbol: 'ARBUSDT',
+    // },
 ];
